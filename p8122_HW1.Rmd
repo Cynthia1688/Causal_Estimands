@@ -14,24 +14,24 @@ library(knitr)
 
 ## Question 1a
 ```{r}
-individuals <- data.frame(
+individuals = data.frame(
   Individual = 1:8,
   Y0 = c(0, 1, 0, 1, 1, 0, 1, 0), 
   Y1 = c(0, 0, 1, 0, 0, 1, 0, 0)
 )
 
 # calculate treatment effects
-individuals <- individuals %>%
+individuals = individuals |>
   mutate(TE = Y1 - Y0) # add a col TE
 
-individuals %>%
+individuals |>
   kable()
 ```
 
 ## Question 1b
 ```{r}
-ACE <- individuals %>%
-  summarise(ACE = mean(TE)) %>%
+ACE = individuals |>
+  summarise(ACE = mean(TE)) |>
   pull(ACE)
 
 cat("The average causal effect (ACE) is:", ACE, "\n")
@@ -39,28 +39,28 @@ cat("The average causal effect (ACE) is:", ACE, "\n")
 
 ## Question 1c
 ```{r}
-assigned_treatment <- c(1, 0, 1, 1, 0, 0, 0, 1)
+assigned_treatment = c(1, 0, 1, 1, 0, 0, 0, 1)
 
-individuals <- individuals %>%
+individuals = individuals |>
   mutate(Assigned_Treatment = assigned_treatment,
          Observed = ifelse(assigned_treatment == 1, Y1, Y0))
 
 cat("Table: Observed Outcomes under Assigned Treatment\n")
-individuals %>%
-  select(Individual, Y0, Y1, Assigned_Treatment, Observed) %>%
+individuals |>
+  select(Individual, Y0, Y1, Assigned_Treatment, Observed) |>
   kable()
 
-mean_treatment <- individuals %>%
-  filter(Assigned_Treatment == 1) %>%
-  summarise(mean_treatment = mean(Observed)) %>%
+mean_treatment = individuals |>
+  filter(Assigned_Treatment == 1) |>
+  summarise(mean_treatment = mean(Observed)) |>
   pull(mean_treatment)
 
-mean_control <- individuals %>%
-  filter(Assigned_Treatment == 0) %>%
-  summarise(mean_control = mean(Observed)) %>%
+mean_control = individuals |>
+  filter(Assigned_Treatment == 0) |>
+  summarise(mean_control = mean(Observed)) |>
   pull(mean_control)
 
-association <- mean_treatment - mean_control
+association = mean_treatment - mean_control
 cat("The association between treatment and outcome under specific treatment assignment is:", association, "\n")
 ```
 Interpretation:
@@ -70,29 +70,29 @@ The association between treatment and outcome under the specific treatment assig
 ## Question 1d
 ```{r}
 set.seed(329) 
-random_assignment <- sample(c(0, 1), size = 8, replace = TRUE)
+random_assignment = sample(c(0, 1), size = 8, replace = TRUE)
 
-individuals <- individuals %>%
+individuals = individuals |>
   mutate(Random_Assigned_Treatment = random_assignment,
          Random_Assigned_Observed = ifelse(random_assignment == 1, Y1, Y0))
 
 cat("Table: Observed Outcomes under Random Assignment\n")
-individuals %>%
-  select(Individual, Y0, Y1, Random_Assigned_Treatment, Random_Assigned_Observed) %>%
+individuals |>
+  select(Individual, Y0, Y1, Random_Assigned_Treatment, Random_Assigned_Observed) |>
   kable()
 
 # Calculate the association for random assignment
-mean_treatment_random <- individuals %>%
-  filter(Random_Assigned_Treatment == 1) %>%
-  summarise(mean_treatment_random = mean(Random_Assigned_Observed)) %>%
+mean_treatment_random = individuals |>
+  filter(Random_Assigned_Treatment == 1) |>
+  summarise(mean_treatment_random = mean(Random_Assigned_Observed)) |>
   pull(mean_treatment_random)
 
-mean_control_random <- individuals %>%
-  filter(Random_Assigned_Treatment == 0) %>%
-  summarise(mean_control_random = mean(Random_Assigned_Observed)) %>%
+mean_control_random = individuals |>
+  filter(Random_Assigned_Treatment == 0) |>
+  summarise(mean_control_random = mean(Random_Assigned_Observed)) |>
   pull(mean_control_random)
 
-association_random <- mean_treatment_random - mean_control_random
+association_random = mean_treatment_random - mean_control_random
 cat("The association between treatment and outcome under random assignment is:", association_random, "\n")
 
 # Compare with part 1b result (ACE)
@@ -100,5 +100,77 @@ cat("The ACE calculated in part 1b is:", ACE, "\n")
 cat("Comparison: Association under random assignment:", association_random, "vs ACE:", ACE, "\n")
 ```
 
+## Question 2a
+
+The unit is the patient who is being treated for blood pressure management.
+
+## Question 2b
+
+The treatment is the dosage of medication: 'High Dose' or 'Low Dose'
+
+## Question 2c
+
+In this case, we could define two potential outcomes:
+
+*	 $Y_{\text{high}}$ : Blood pressure could be too high if the patient continues with the high dose of medication.
+*	 $Y_{\text{low}}$ : Blood pressure could be perfect (or controlled) under the low dose of medication.
+
+## Question 2d
+```{r}
+outcomes_numeric = data.frame(
+  Treatment = c("High Dose", "Low Dose"),
+  Y_high = c(0, NA),   
+  Y_low = c(NA, 1)      
+)
+
+# Calculate causal effect: Y_low - Y_high
+causal_effect = outcomes_numeric$Y_low[2] - outcomes_numeric$Y_high[1]
+causal_effect
+```
+
+Interpretation: Switching to the low dose results in better control of blood pressure.
+
+
+## Question 2e
+
+SUTVA is plausible in this scenario:
+* No interference: The patient's outcome is not influenced by others' treatment.
+* Consistency: The low dose consistently results in better blood pressure control.
+
+## Question 2f
+
+* SUTVA must be plausible to ensure that the potential outcome framework is valid.
+* This ensures that the treatment's effect is not influenced by other external factors and the outcome is consistent across treatments.
+
+# Question 2g
+
+* Probabilistic: No, the assignment is deterministic based on blood pressure readings.
+* Individualistic: Yes, the treatment is specifically tailored for this patient.
+* Unconfounded: Yes, treatment is based directly on the observed blood pressure levels, minimizing confounding.
+* Controlled: Yes, the physician adjusts the dosage in a controlled manner based on the outcome.
+
+## Question 2h
+```{r}
+set.seed(123) 
+
+random_assignment = sample(c("High Dose", "Low Dose"), size = 1, replace = TRUE)
+cat("Random Assignment: The patient is assigned to:", random_assignment, "\n")
+
+random_outcome = ifelse(random_assignment == "High Dose", "Too High", "Perfect")
+cat("Observed outcome under random assignment:", random_outcome, "\n")
+
+n = 10  # Number of random assignments
+results = data.frame(Trial = 1:n, Assigned_Treatment = NA, Outcome = NA)
+
+for (i in 1:n) {
+  assigned_treatment = sample(c("High Dose", "Low Dose"), size = 1, replace = TRUE)
+  observed_outcome = ifelse(assigned_treatment == "High Dose", "Too High", "Perfect")
+  results$Assigned_Treatment[i] = assigned_treatment
+  results$Outcome[i] = observed_outcome
+}
+
+cat("\nTable: Outcomes under repeated random assignment\n")
+print(results)
+```
 
 
