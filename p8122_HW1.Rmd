@@ -45,7 +45,6 @@ individuals = individuals |>
   mutate(Assigned_Treatment = assigned_treatment,
          Observed = ifelse(assigned_treatment == 1, Y1, Y0))
 
-cat("Table: Observed Outcomes under Assigned Treatment\n")
 individuals |>
   select(Individual, Y0, Y1, Assigned_Treatment, Observed) |>
   kable()
@@ -61,7 +60,7 @@ mean_control = individuals |>
   pull(mean_control)
 
 association = mean_treatment - mean_control
-cat("The association between treatment and outcome under specific treatment assignment is:", association, "\n")
+association
 ```
 Interpretation:
 
@@ -76,7 +75,6 @@ individuals = individuals |>
   mutate(Random_Assigned_Treatment = random_assignment,
          Random_Assigned_Observed = ifelse(random_assignment == 1, Y1, Y0))
 
-cat("Table: Observed Outcomes under Random Assignment\n")
 individuals |>
   select(Individual, Y0, Y1, Random_Assigned_Treatment, Random_Assigned_Observed) |>
   kable()
@@ -93,12 +91,12 @@ mean_control_random = individuals |>
   pull(mean_control_random)
 
 association_random = mean_treatment_random - mean_control_random
-cat("The association between treatment and outcome under random assignment is:", association_random, "\n")
-
-# Compare with part 1b result (ACE)
-cat("The ACE calculated in part 1b is:", ACE, "\n")
-cat("Comparison: Association under random assignment:", association_random, "vs ACE:", ACE, "\n")
+association_random
 ```
+Interpretation:
+
+* Compare with question 1b ACE -0.25, the ACE under random assignment is also -0.25.
+
 
 ## Question 2a
 
@@ -134,6 +132,7 @@ Interpretation: Switching to the low dose results in better control of blood pre
 ## Question 2e
 
 SUTVA is plausible in this scenario:
+
 * No interference: The patient's outcome is not influenced by others' treatment.
 * Consistency: The low dose consistently results in better blood pressure control.
 
@@ -142,7 +141,7 @@ SUTVA is plausible in this scenario:
 * SUTVA must be plausible to ensure that the potential outcome framework is valid.
 * This ensures that the treatment's effect is not influenced by other external factors and the outcome is consistent across treatments.
 
-# Question 2g
+## Question 2g
 
 * Probabilistic: No, the assignment is deterministic based on blood pressure readings.
 * Individualistic: Yes, the treatment is specifically tailored for this patient.
@@ -154,10 +153,8 @@ SUTVA is plausible in this scenario:
 set.seed(123) 
 
 random_assignment = sample(c("High Dose", "Low Dose"), size = 1, replace = TRUE)
-cat("Random Assignment: The patient is assigned to:", random_assignment, "\n")
 
 random_outcome = ifelse(random_assignment == "High Dose", "Too High", "Perfect")
-cat("Observed outcome under random assignment:", random_outcome, "\n")
 
 n = 10  # Number of random assignments
 results = data.frame(Trial = 1:n, Assigned_Treatment = NA, Outcome = NA)
@@ -169,7 +166,6 @@ for (i in 1:n) {
   results$Outcome[i] = observed_outcome
 }
 
-cat("\nTable: Outcomes under repeated random assignment\n")
 print(results)
 ```
 
