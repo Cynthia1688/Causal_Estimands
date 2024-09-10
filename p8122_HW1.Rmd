@@ -1,0 +1,104 @@
+---
+title: "p8122_HW1"
+author: "yc4384_Yangyang_Chen"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Load necessary library
+library(dplyr)
+library(knitr)
+```
+
+## Question 1a
+```{r}
+individuals <- data.frame(
+  Individual = 1:8,
+  Y0 = c(0, 1, 0, 1, 1, 0, 1, 0), 
+  Y1 = c(0, 0, 1, 0, 0, 1, 0, 0)
+)
+
+# calculate treatment effects
+individuals <- individuals %>%
+  mutate(TE = Y1 - Y0) # add a col TE
+
+individuals %>%
+  kable()
+```
+
+## Question 1b
+```{r}
+ACE <- individuals %>%
+  summarise(ACE = mean(TE)) %>%
+  pull(ACE)
+
+cat("The average causal effect (ACE) is:", ACE, "\n")
+```
+
+## Question 1c
+```{r}
+assigned_treatment <- c(1, 0, 1, 1, 0, 0, 0, 1)
+
+individuals <- individuals %>%
+  mutate(Assigned_Treatment = assigned_treatment,
+         Observed = ifelse(assigned_treatment == 1, Y1, Y0))
+
+cat("Table: Observed Outcomes under Assigned Treatment\n")
+individuals %>%
+  select(Individual, Y0, Y1, Assigned_Treatment, Observed) %>%
+  kable()
+
+mean_treatment <- individuals %>%
+  filter(Assigned_Treatment == 1) %>%
+  summarise(mean_treatment = mean(Observed)) %>%
+  pull(mean_treatment)
+
+mean_control <- individuals %>%
+  filter(Assigned_Treatment == 0) %>%
+  summarise(mean_control = mean(Observed)) %>%
+  pull(mean_control)
+
+association <- mean_treatment - mean_control
+cat("The association between treatment and outcome under specific treatment assignment is:", association, "\n")
+```
+Interpretation:
+
+The association between treatment and outcome under the specific treatment assignment is `r association`, which indicates individuals in the treatment group had worse health status (mean = 0.25) compared to the control group (mean = 0.75).
+
+## Question 1d
+```{r}
+set.seed(329) 
+random_assignment <- sample(c(0, 1), size = 8, replace = TRUE)
+
+individuals <- individuals %>%
+  mutate(Random_Assigned_Treatment = random_assignment,
+         Random_Assigned_Observed = ifelse(random_assignment == 1, Y1, Y0))
+
+cat("Table: Observed Outcomes under Random Assignment\n")
+individuals %>%
+  select(Individual, Y0, Y1, Random_Assigned_Treatment, Random_Assigned_Observed) %>%
+  kable()
+
+# Calculate the association for random assignment
+mean_treatment_random <- individuals %>%
+  filter(Random_Assigned_Treatment == 1) %>%
+  summarise(mean_treatment_random = mean(Random_Assigned_Observed)) %>%
+  pull(mean_treatment_random)
+
+mean_control_random <- individuals %>%
+  filter(Random_Assigned_Treatment == 0) %>%
+  summarise(mean_control_random = mean(Random_Assigned_Observed)) %>%
+  pull(mean_control_random)
+
+association_random <- mean_treatment_random - mean_control_random
+cat("The association between treatment and outcome under random assignment is:", association_random, "\n")
+
+# Compare with part 1b result (ACE)
+cat("The ACE calculated in part 1b is:", ACE, "\n")
+cat("Comparison: Association under random assignment:", association_random, "vs ACE:", ACE, "\n")
+```
+
+
+
